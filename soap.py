@@ -35,24 +35,24 @@ def game():
             fric = .97
             current_velocity = fric * current_velocity
             current_velocity[abs(current_velocity) < .01] = 0.0 #Prevent jitter
-            current_velocity[current_velocity > 15] = 15.0      #and prevent
-            current_velocity[current_velocity < -15] = -15.0    #out-of-bounds
+            current_velocity[current_velocity > max_vel] = max_vel #and prevent
+            current_velocity[current_velocity < -max_vel] = -max_vel #oob
             return current_velocity
 
         def decel_and_move(center):
             center.velocity = friction(center.velocity)
             center.loc += center.velocity
-
+        
         if BOUNCING:
             for center in centers:
                 #Reverse the velocity if out-of-bounds
-                center.velocity[(center.loc < 15) | (center.loc > 985)] *= -1
+                center.velocity[(center.loc < max_vel)|\
+                                (center.loc > oob_dim - max_vel)] *= -1
                 decel_and_move(center)
         else: #Delete out-of-bound centers
             oob = [center\
                    for center in centers\
-                   for coor in center.loc\
-                   if not 0 < coor < 1000]
+                   if ((0 > center.loc)|(center.loc > oob_dim)).any()]
             for center in oob: centers.remove(center)
             for center in centers: decel_and_move(center)
 
@@ -60,17 +60,17 @@ def game():
         if not (UP or DOWN or LEFT or RIGHT):
             decel_and_move(color_center)
         else:
-            if UP and color_center.velocity[1] > -15:
+            if UP and color_center.velocity[1] > -max_vel:
                 color_center.velocity[1] -= .5
-            if DOWN and color_center.velocity[1] < 15:
+            if DOWN and color_center.velocity[1] < max_vel:
                 color_center.velocity[1] += .5
-            if LEFT and color_center.velocity[0] > -15:
+            if LEFT and color_center.velocity[0] > -max_vel:
                 color_center.velocity[0] -= .5
-            if RIGHT and color_center.velocity[1] < 15:
+            if RIGHT and color_center.velocity[1] < max_vel:
                 color_center.velocity[0] += .5
             color_center.loc += color_center.velocity
         #"Wrap" around the screen instead of heading out-of-bounds
-        color_center.loc %= 1000
+        color_center.loc %= oob_dim
 
     def draw_voronoi_cells():
         """
@@ -138,25 +138,30 @@ def game():
         """
         Draws a help menu.
         """
-        bg = pygame.Surface((670,325))
-        bg.set_alpha(140)
-        bg.fill((0, 0, 0))
-        WINDOW.blit(bg, (165,337))
-        for i, surface in enumerate(help_text):
-                WINDOW.blit(surface, (191, 353 + 25 * i))
+        #WINDOW should be at least 670 x 325
+        help_background = pygame.Surface((670,325))
+        help_background.set_alpha(140)
+        help_background.fill((0, 0, 0))
+        help_coordinates = array([(WINDOW_WIDTH-670)//2,\
+                                  ((WINDOW_HEIGHT-325)//2)])
+        WINDOW.blit(help_background, help_coordinates)
+        for i, line in enumerate(help_text):
+                WINDOW.blit(line,\
+                            help_coordinates+array([25, 16 + 25 * i]))
 
     #INPUT FUNCTIONS----------------------------------------------------------
     def user_input():
+        WASD = {97, 115, 100, 119}
         for event in pygame.event.get():
             if event.type == QUIT:
                 nonlocal running
                 running = False
             elif event.type == KEYDOWN:
                 KEYDOWN_dict.get(event.key, no_key)()
-                if event.key in {97, 115, 100, 119}:
+                if event.key in WASD:
                     color_move_start(event.key)
             elif event.type == KEYUP:
-                if event.key in {97, 115, 100, 119}:
+                if event.key in WASD:
                     color_move_stop(event.key)
             elif event.type == MOUSEBUTTONDOWN:
                 if event.button == 1:   #Left-Click
@@ -170,37 +175,28 @@ def game():
 
     def reset():
         nonlocal centers
-        centers = [Center(array([randint(0,999),\
-                                 randint(0,999)]).astype(float),\
+        centers = [Center(array([randint(0, WINDOW_WIDTH),\
+                                 randint(0, WINDOW_WIDTH)]).astype(float),\
                           array([0.0, 0.0]))\
                    for i in range(number_of_centers)]
 
-    def toggle_centers():
-        nonlocal CENTERS_VISIBLE
+    def toggle_centers(): 
+        nonlocal CENTERS_VISIBLE;
         CENTERS_VISIBLE = not CENTERS_VISIBLE
 
-    def toggle_bouncing():
-        nonlocal BOUNCING
-        BOUNCING = not BOUNCING
+    def toggle_bouncing(): nonlocal BOUNCING; BOUNCING = not BOUNCING
 
-    def toggle_fill():
-        nonlocal FILL
-        FILL = not FILL
+    def toggle_fill(): nonlocal FILL; FILL = not FILL
 
-    def toggle_outline():
-        nonlocal OUTLINE
-        OUTLINE = not OUTLINE
+    def toggle_outline(): nonlocal OUTLINE; OUTLINE = not OUTLINE
 
     def next_palette():
         nonlocal PALETTE
         PALETTE = palettes[(palettes.index(PALETTE) + 1 ) % len(palettes)]
 
-    def toggle_help():
-        nonlocal HELP
-        HELP = not HELP
+    def toggle_help(): nonlocal HELP; HELP = not HELP
 
-    def no_key():
-        pass
+    def no_key(): pass
 
     def color_move_start(key):
         if key == 119:
@@ -251,7 +247,11 @@ def game():
 
     #Game constants-----------------------------------------------------------
     BACKGROUND_COLOR  = (63, 63, 63)
-    WINDOW = pygame.display.set_mode((1000, 1000))
+    #Help menu doesn't scale so WINDOW_WIDTH x WINDOW_HEIGHT should be at least
+    #670 x 325 to see it drawn properly.
+    WINDOW_WIDTH = 670
+    WINDOW_HEIGHT = 325
+    WINDOW = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
     help_text = ["Left-click to poke the centers.",\
                  "Right-click to create a new center.",\
                  "w,a,s,d moves the color center.",\
@@ -285,6 +285,9 @@ def game():
                     273: next_palette,   #'up'
                     27: toggle_help,}    #'esc'
     clock = pygame.time.Clock()
+    #Constants used for move_centers()
+    max_vel = 15.0 #Max Velocity
+    oob_dim = array([WINDOW_WIDTH, WINDOW_HEIGHT]).astype(float) #Out-of-bounds
 
     #Game Variables-----------------------------------------------------------
     centers = []; reset() #Create and randomly place cell centers
@@ -292,7 +295,8 @@ def game():
     #The color center is controlled with w,a,s,d. The distance from the color
     #center to the centers of voronoi cells determines those cells colors.
     #-----------------------------------------------------------------------
-    color_center = Center(array([500.0,500.0]), array([0.0, 0.0]))
+    color_center = Center(array([WINDOW_WIDTH/2, WINDOW_HEIGHT/2]),\
+                          array([0.0, 0.0]))
     PALETTE = palettes[0]
     BOUNCING = FILL = OUTLINE = HELP = running = True
     CENTERS_VISIBLE = UP = DOWN = LEFT = RIGHT = False
