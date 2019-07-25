@@ -249,8 +249,7 @@ def game():
     BACKGROUND_COLOR  = (63, 63, 63)
     #Help menu doesn't scale so WINDOW_WIDTH x WINDOW_HEIGHT should be at least
     #670 x 325 to see it drawn properly.
-    WINDOW_WIDTH = 670
-    WINDOW_HEIGHT = 325
+    WINDOW_WIDTH = WINDOW_HEIGHT = 1000
     WINDOW = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
     help_text = ["Left-click to poke the centers.",\
                  "Right-click to create a new center.",\
