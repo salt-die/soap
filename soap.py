@@ -35,14 +35,15 @@ def game():
             fric = .97
             current_velocity = fric * current_velocity
             current_velocity[abs(current_velocity) < .01] = 0.0 #Prevent jitter
-            current_velocity[current_velocity > max_vel] = max_vel #and prevent
-            current_velocity[current_velocity < -max_vel] = -max_vel #oob
+            current_velocity[current_velocity > max_vel] = max_vel #Prevent OOB
+            current_velocity[current_velocity < -max_vel] = -max_vel 
             return current_velocity
 
         def decel_and_move(center):
             center.velocity = friction(center.velocity)
             center.loc += center.velocity
         
+        #Movement for cell centers
         if BOUNCING:
             for center in centers:
                 #Reverse the velocity if out-of-bounds
@@ -50,8 +51,7 @@ def game():
                                 (center.loc > oob_dim - max_vel)] *= -1
                 decel_and_move(center)
         else: #Delete out-of-bound centers
-            oob = [center\
-                   for center in centers\
+            oob = [center for center in centers\
                    if ((0 > center.loc)|(center.loc > oob_dim)).any()]
             for center in oob: centers.remove(center)
             for center in centers: decel_and_move(center)
@@ -66,7 +66,7 @@ def game():
                 color_center.velocity[1] += .5
             if LEFT and color_center.velocity[0] > -max_vel:
                 color_center.velocity[0] -= .5
-            if RIGHT and color_center.velocity[1] < max_vel:
+            if RIGHT and color_center.velocity[0] < max_vel:
                 color_center.velocity[0] += .5
             color_center.loc += color_center.velocity
         #"Wrap" around the screen instead of heading out-of-bounds
@@ -98,7 +98,7 @@ def game():
         try:
             vor = Voronoi(POINTS)
         except:
-            #Either too few POINTS or POINTs are colinear.
+            #Either too few POINTS or POINTS are collinear.
             #Everything is fine, we just won't draw any cells.
             #Leave the function quietly!
             return
@@ -275,7 +275,7 @@ def game():
                 lambda color: (color[0], color[0], color[0]),\
                 lambda color: (color[0], color[0], color[2]),\
                 lambda color: (155, 100, color[0])]
-    number_of_centers = 50
+    number_of_centers = 50 #Initial number of cell centers
     KEYDOWN_dict = {114: reset,          #'r'
                     104: toggle_centers, #'h'
                     98: toggle_bouncing, #'b'
@@ -283,7 +283,7 @@ def game():
                     111: toggle_outline, #'o'
                     273: next_palette,   #'up'
                     27: toggle_help,}    #'esc'
-    clock = pygame.time.Clock()
+    clock = pygame.time.Clock() #For limiting fps
     #Constants used for move_centers()
     max_vel = 15.0 #Max Velocity
     oob_dim = array([WINDOW_WIDTH, WINDOW_HEIGHT]).astype(float) #Out-of-bounds
