@@ -4,7 +4,7 @@ import pygame
 import pygame.freetype #For loading font
 from pygame.draw import polygon, aalines, circle
 from pygame.locals import QUIT, KEYDOWN, KEYUP, MOUSEBUTTONDOWN
-from numpy import pi, array, where, sin
+from numpy import pi, array, where, sin, clip
 from numpy.linalg import norm
 from random import randint
 from scipy.spatial import Voronoi
@@ -36,9 +36,8 @@ def game():
             """
             fric = .97
             velocity = fric * velocity
-            velocity[abs(velocity) < .01] = 0.0 #Prevent jitter
-            velocity[velocity > MAX_VEL] = MAX_VEL #Prevent OOB
-            velocity[velocity < -MAX_VEL] = -MAX_VEL
+            velocity[abs(velocity) < .01] = 0.0         #Prevent jitter
+            clip(velocity, -MAX_VEL, MAX_VEL, velocity) #Prevent OOB
             return velocity
 
         def decel_and_move(center):
