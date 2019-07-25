@@ -27,17 +27,19 @@ def game():
 
         Also handles manual movement of color center.
         """
-        def friction(current_velocity):
+        def friction(velocity):
             """
+            Applies friction and limits the magnitude of velocity.
+            
             The friction constant, fric, should satisfy 0 < fric < 1.
             Don't fric it up.
             """
             fric = .97
-            current_velocity = fric * current_velocity
-            current_velocity[abs(current_velocity) < .01] = 0.0 #Prevent jitter
-            current_velocity[current_velocity > MAX_VEL] = MAX_VEL #Prevent OOB
-            current_velocity[current_velocity < -MAX_VEL] = -MAX_VEL 
-            return current_velocity
+            velocity = fric * velocity
+            velocity[abs(velocity) < .01] = 0.0 #Prevent jitter
+            velocity[velocity > MAX_VEL] = MAX_VEL #Prevent OOB
+            velocity[velocity < -MAX_VEL] = -MAX_VEL
+            return velocity
 
         def decel_and_move(center):
             center.velocity = friction(center.velocity)
@@ -95,8 +97,7 @@ def game():
             return PALETTE(color)
 
         POINTS = [center.loc for center in centers]
-        #Comment out line below if you'd prefer no voronoi cell around the
-        #color center.
+        #Comment out if you'd prefer no voronoi cell around the color center.
         POINTS.append(color_center.loc)
         try:
             vor = Voronoi(POINTS)
