@@ -181,7 +181,7 @@ def game():
                    for i in range(number_of_centers)]
 
     def toggle_centers(): 
-        nonlocal CENTERS_VISIBLE;
+        nonlocal CENTERS_VISIBLE
         CENTERS_VISIBLE = not CENTERS_VISIBLE
 
     def toggle_bouncing(): nonlocal BOUNCING; BOUNCING = not BOUNCING
