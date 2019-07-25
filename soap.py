@@ -51,9 +51,9 @@ def game():
                                 (center.loc > oob_dim - max_vel)] *= -1
                 decel_and_move(center)
         else: #Delete out-of-bound centers
-            oob = [center for center in centers\
-                   if ((0 > center.loc)|(center.loc > oob_dim)).any()]
-            for center in oob: centers.remove(center)
+            oob = {center for center in centers\
+                   if ((0 > center.loc)|(center.loc > oob_dim)).any()}
+            centers.difference_update(oob)
             for center in centers: decel_and_move(center)
 
         #Movement for color center
