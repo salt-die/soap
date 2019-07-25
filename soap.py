@@ -141,7 +141,6 @@ def game():
         """
         Draws a help menu.
         """
-        #WINDOW should be at least 670 x 325
         help_background = pygame.Surface((670,325))
         help_background.set_alpha(140)
         help_background.fill((0, 0, 0))
@@ -247,8 +246,8 @@ def game():
 
     #Game constants-----------------------------------------------------------
     BACKGROUND_COLOR  = (63, 63, 63)
-    #Help menu doesn't scale so WINDOW_WIDTH x WINDOW_HEIGHT should be at least
-    #670 x 325 to see it drawn properly.
+    #WINDOW_WIDTH x WINDOW_HEIGHT should be at least 670 x 325 to see help
+    #drawn properly.
     WINDOW_WIDTH = WINDOW_HEIGHT = 1000
     WINDOW = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
     help_text = ["Left-click to poke the centers.",\
@@ -266,8 +265,8 @@ def game():
     myfont = pygame.freetype.Font('NotoSansMono-Regular.ttf', 20)
     help_text = [myfont.render(text, (255, 255, 255)) for text in help_text]
     help_text = [i for i,_ in help_text] #Throw away the rect-like tuples
-    #Experimenting with palettes is fun! Remember that color will be a 3-tuple
-    #(R, G, B) if adding your own function here.
+    #If adding to palettes, remember input: output will be 3-tuples with each
+    #element an integer between 0 and 255.
     palettes = [lambda color: color,\
                 lambda color: (color[0], color[0], 255),\
                 lambda color: (color[0], color[1], 155),\
