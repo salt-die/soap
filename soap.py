@@ -175,9 +175,9 @@ def game():
 
     def reset():
         nonlocal centers
-        centers = [Center(array([randint(0, WINDOW_WIDTH),\
-                                 randint(0, WINDOW_WIDTH)]).astype(float),\
-                          array([0.0, 0.0]))\
+        centers = [Center(array([randint(max_vel, WINDOW_WIDTH-max_vel),\
+                randint(max_vel, WINDOW_HEIGHT-max_vel)]).astype(float),\
+                   array([0.0, 0.0]))\
                    for i in range(number_of_centers)]
 
     def toggle_centers(): 
