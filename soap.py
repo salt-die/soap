@@ -35,8 +35,8 @@ def game():
             fric = .97
             current_velocity = fric * current_velocity
             current_velocity[abs(current_velocity) < .01] = 0.0 #Prevent jitter
-            current_velocity[current_velocity > max_vel] = max_vel #Prevent OOB
-            current_velocity[current_velocity < -max_vel] = -max_vel 
+            current_velocity[current_velocity > MAX_VEL] = MAX_VEL #Prevent OOB
+            current_velocity[current_velocity < -MAX_VEL] = -MAX_VEL 
             return current_velocity
 
         def decel_and_move(center):
@@ -47,12 +47,12 @@ def game():
         if BOUNCING:
             for center in centers:
                 #Reverse the velocity if out-of-bounds
-                center.velocity[(center.loc < max_vel)|\
-                                (center.loc > oob_dim - max_vel)] *= -1
+                center.velocity[(center.loc < MAX_VEL)|\
+                                (center.loc > OOB_DIM - MAX_VEL)] *= -1
                 decel_and_move(center)
         else: #Delete out-of-bound centers
             oob = {center for center in centers\
-                   if ((0 > center.loc)|(center.loc > oob_dim)).any()}
+                   if ((0 > center.loc)|(center.loc > OOB_DIM)).any()}
             centers.difference_update(oob)
             for center in centers: decel_and_move(center)
 
@@ -60,17 +60,17 @@ def game():
         if not (UP or DOWN or LEFT or RIGHT):
             decel_and_move(color_center)
         else:
-            if UP and color_center.velocity[1] > -max_vel:
+            if UP and color_center.velocity[1] > -MAX_VEL:
                 color_center.velocity[1] -= .5
-            if DOWN and color_center.velocity[1] < max_vel:
+            if DOWN and color_center.velocity[1] < MAX_VEL:
                 color_center.velocity[1] += .5
-            if LEFT and color_center.velocity[0] > -max_vel:
+            if LEFT and color_center.velocity[0] > -MAX_VEL:
                 color_center.velocity[0] -= .5
-            if RIGHT and color_center.velocity[0] < max_vel:
+            if RIGHT and color_center.velocity[0] < MAX_VEL:
                 color_center.velocity[0] += .5
             color_center.loc += color_center.velocity
         #"Wrap" around the screen instead of heading out-of-bounds
-        color_center.loc %= oob_dim
+        color_center.loc %= OOB_DIM
 
     def draw_voronoi_cells():
         """
@@ -175,8 +175,8 @@ def game():
 
     def reset():
         nonlocal centers
-        centers = {Center(array([randint(max_vel, WINDOW_WIDTH - max_vel),\
-                                 randint(max_vel, WINDOW_HEIGHT - max_vel)])\
+        centers = {Center(array([randint(MAX_VEL, WINDOW_WIDTH - MAX_VEL),\
+                                 randint(MAX_VEL, WINDOW_HEIGHT - MAX_VEL)])\
                           .astype(float), array([0.0, 0.0]))\
                    for i in range(number_of_centers)}
 
@@ -285,8 +285,8 @@ def game():
                     27: toggle_help,}    #'esc'
     clock = pygame.time.Clock() #For limiting fps
     #Constants used for move_centers()
-    max_vel = 15.0 #Max Velocity
-    oob_dim = array([WINDOW_WIDTH, WINDOW_HEIGHT]).astype(float) #Out-of-bounds
+    MAX_VEL = 15.0 #Max Velocity
+    OOB_DIM = array([WINDOW_WIDTH, WINDOW_HEIGHT]).astype(float) #Out-of-bounds
 
     #Game Variables-----------------------------------------------------------
     centers = {}; reset() #Create and randomly place cell centers
