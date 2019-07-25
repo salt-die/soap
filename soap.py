@@ -170,15 +170,15 @@ def game():
                 if event.button == 1:   #Left-Click
                     poke(array(pygame.mouse.get_pos()))
                 elif event.button == 3: #Right-Click
-                    centers.append(Center(array(pygame.mouse.get_pos())\
-                                          .astype(float), array([0.0, 0.0])))
+                    centers.add(Center(array(pygame.mouse.get_pos())\
+                                       .astype(float), array([0.0, 0.0])))
 
     def reset():
         nonlocal centers
-        centers = [Center(array([randint(max_vel, WINDOW_WIDTH - max_vel),\
+        centers = {Center(array([randint(max_vel, WINDOW_WIDTH - max_vel),\
                                  randint(max_vel, WINDOW_HEIGHT - max_vel)])\
                           .astype(float), array([0.0, 0.0]))\
-                   for i in range(number_of_centers)]
+                   for i in range(number_of_centers)}
 
     def toggle_centers(): 
         nonlocal CENTERS_VISIBLE
@@ -289,7 +289,7 @@ def game():
     oob_dim = array([WINDOW_WIDTH, WINDOW_HEIGHT]).astype(float) #Out-of-bounds
 
     #Game Variables-----------------------------------------------------------
-    centers = []; reset() #Create and randomly place cell centers
+    centers = {}; reset() #Create and randomly place cell centers
     #-----------------------------------------------------------------------
     #The color center is controlled with w,a,s,d. The distance from the color
     #center to the centers of voronoi cells determines those cells colors.
