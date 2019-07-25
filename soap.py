@@ -165,19 +165,16 @@ def game():
                     color_move_stop(event.key)
             elif event.type == MOUSEBUTTONDOWN:
                 if event.button == 1:   #Left-Click
-                    mouseX, mouseY = pygame.mouse.get_pos()
-                    poke(array([mouseX, mouseY]))
+                    poke(array(pygame.mouse.get_pos()))
                 elif event.button == 3: #Right-Click
-                    mouseX, mouseY = pygame.mouse.get_pos()
-                    centers.append(Center(array([mouseX,\
-                                                 mouseY]).astype(float),\
-                                   array([0.0, 0.0])))
+                    centers.append(Center(array(pygame.mouse.get_pos())\
+                                          .astype(float), array([0.0, 0.0])))
 
     def reset():
         nonlocal centers
-        centers = [Center(array([randint(max_vel, WINDOW_WIDTH-max_vel),\
-                randint(max_vel, WINDOW_HEIGHT-max_vel)]).astype(float),\
-                   array([0.0, 0.0]))\
+        centers = [Center(array([randint(max_vel, WINDOW_WIDTH - max_vel),\
+                                 randint(max_vel, WINDOW_HEIGHT - max_vel)])\
+                          .astype(float), array([0.0, 0.0]))\
                    for i in range(number_of_centers)]
 
     def toggle_centers(): 
