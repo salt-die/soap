@@ -95,6 +95,9 @@ def game():
             return PALETTE(color)
 
         POINTS = [center.loc for center in centers]
+        #Comment out line below if you'd prefer no voronoi cell around the
+        #color center.
+        POINTS.append(color_center.loc)
         try:
             vor = Voronoi(POINTS)
         except:
