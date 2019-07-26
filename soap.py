@@ -91,8 +91,8 @@ def game():
             """
             frequency = .01
             distance = norm(color_center.loc - point)
-            color = [int(sin(frequency * distance + offset) * 127 + 128)\
-                     for offset in [0, 2*pi/3, 4*pi/3]]
+            color = (sin(frequency * distance +\
+                         array((0, 2*pi/3, 4*pi/3))) * 127 + 128).astype(int)
             return PALETTE(color)
 
         POINTS = [center.loc for center in centers]
