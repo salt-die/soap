@@ -7,8 +7,14 @@ from numpy import pi, array, where, sin, clip
 from numpy.linalg import norm
 from random import randint
 from scipy.spatial import Voronoi
+from scipy.spatial.qhull import QhullError
 
 class Center:
+    """
+    A class for storing location and velocity.
+
+    Methods may be added in the future -- don't refactor into dict.
+    """
     def __init__(self, loc, velocity):
         self.loc = loc
         self.velocity = velocity
@@ -29,7 +35,7 @@ def game():
         def friction(velocity):
             """
             Applies friction and limits the magnitude of velocity.
-            
+
             The friction constant, fric, should satisfy 0 < fric < 1.
             Don't fric it up.
             """
@@ -40,9 +46,13 @@ def game():
             return velocity
 
         def decel_and_move(center):
+            """
+            Apply friction to center's velocity and move center according to
+            it's new velocity.
+            """
             center.velocity = friction(center.velocity)
             center.loc += center.velocity
-        
+
         #Movement for cell centers
         if BOUNCING:
             for center in centers:
@@ -94,13 +104,13 @@ def game():
                                array((0, 2*pi/3, 4*pi/3))) + 128).astype(int)
             return PALETTE(color)
 
-        POINTS = [center.loc for center in centers]
+        points = [center.loc for center in centers]
         #Comment out if you'd prefer no voronoi cell around the color center.
-        POINTS.append(color_center.loc)
+        points.append(color_center.loc)
         try:
-            vor = Voronoi(POINTS)
-        except:
-            #Either too few POINTS or POINTS are collinear.
+            vor = Voronoi(points)
+        except (QhullError, ValueError):
+            #Either too few points or points are degenerate.
             #Everything is fine, we just won't draw any cells.
             #Leave the function quietly!
             return
@@ -117,15 +127,15 @@ def game():
         #-----------------------------------------------------------------
         polygons = [(vor.points[where(vor.point_region == i)],\
                     [vor.vertices[j] for j in reg if j != -1])\
-                    for i,reg in enumerate(vor.regions)\
-                    if len(reg)>3 or (len(reg)==3 and -1 not in reg)]
+                    for i, reg in enumerate(vor.regions)\
+                    if len(reg) > 3 or (len(reg) == 3 and -1 not in reg)]
 
         if FILL:
-            for center,poly in polygons:
+            for center, poly in polygons:
                 polygon(WINDOW, get_color(center), poly)
 
         if OUTLINE:
-            for _,poly in polygons:
+            for _, poly in polygons:
                 aalines(WINDOW, (255, 255, 255), True, poly, 1)
 
     def draw_centers():
@@ -133,38 +143,41 @@ def game():
         Draws a tiny circle at each center location.
         """
         for center in centers:
-                circle(WINDOW, (255, 255, 255), center.loc.astype(int), 3)
+            circle(WINDOW, (255, 255, 255), center.loc.astype(int), 3)
+
         circle(WINDOW, (0, 0, 0), color_center.loc.astype(int), 5)
 
     def draw_help():
         """
         Draws a help menu.
         """
-        help_background = pygame.Surface((670,350))
+        help_background = pygame.Surface((670, 350))
         help_background.set_alpha(140)
         help_background.fill((0, 0, 0))
         help_coordinates = array([(WINDOW_WIDTH-670)//2,\
                                   ((WINDOW_HEIGHT-350)//2)])
         WINDOW.blit(help_background, help_coordinates)
         for i, line in enumerate(help_text):
-                WINDOW.blit(line,\
-                            help_coordinates+array([25, 16 + 25 * i]))
+            WINDOW.blit(line, help_coordinates+array([25, 16 + 25 * i]))
 
     #INPUT FUNCTIONS----------------------------------------------------------
     def get_user_input():
-        WASD = {97, 115, 100, 119}
+        """
+        Get user input and do stuff with it.
+        """
+        wasd = {97, 115, 100, 119}
         for event in pygame.event.get():
             if event.type == 12: #Quit
                 nonlocal running
                 running = False
             elif event.type == 2: #Key down
                 KEYDOWN_dict.get(event.key, no_key)()
-                if event.key in WASD:
+                if event.key in wasd:
                     color_move_start(event.key)
                 elif event.key == 32: #space
                     poke(color_center.loc)
             elif event.type == 3: #Key up
-                if event.key in WASD:
+                if event.key in wasd:
                     color_move_stop(event.key)
             elif event.type == 5: #Mouse down
                 if event.button == 1:   #Left-Click
@@ -174,31 +187,68 @@ def game():
                                        .astype(float), array([0.0, 0.0])))
 
     def reset():
+        """
+        Reset position of the cell centers.
+        """
         nonlocal centers
         centers = {Center(array([randint(MAX_VEL, WINDOW_WIDTH - MAX_VEL),\
                                  randint(MAX_VEL, WINDOW_HEIGHT - MAX_VEL)])\
                           .astype(float), array([0.0, 0.0]))\
                    for i in range(number_of_centers)}
 
-    def toggle_centers(): 
+    def toggle_centers():
+        """
+        Toggle showing cell centers.
+        """
         nonlocal CENTERS_VISIBLE
         CENTERS_VISIBLE = not CENTERS_VISIBLE
 
-    def toggle_bouncing(): nonlocal BOUNCING; BOUNCING = not BOUNCING
+    def toggle_bouncing():
+        """
+        Toggle bouncing off boundaries. If off, out-of-bound centers are
+        deleted.
+        """
+        nonlocal BOUNCING
+        BOUNCING = not BOUNCING
 
-    def toggle_fill(): nonlocal FILL; FILL = not FILL
+    def toggle_fill():
+        """
+        Toggle coloring the Voronoi cells.
+        """
+        nonlocal FILL
+        FILL = not FILL
 
-    def toggle_outline(): nonlocal OUTLINE; OUTLINE = not OUTLINE
+    def toggle_outline():
+        """
+        Toggle drawing the outling of the Voronoi cells.
+        """
+        nonlocal OUTLINE
+        OUTLINE = not OUTLINE
 
     def next_palette():
+        """
+        Change the colors used to color Voronoi cells.
+        """
         nonlocal PALETTE
-        PALETTE = palettes[(palettes.index(PALETTE) + 1 ) % len(palettes)]
+        PALETTE = palettes[(palettes.index(PALETTE) + 1) % len(palettes)]
 
-    def toggle_help(): nonlocal HELP; HELP = not HELP
+    def toggle_help():
+        """
+        Show the help menu.
+        """
+        nonlocal HELP
+        HELP = not HELP
 
-    def no_key(): pass
+    def no_key():
+        """
+        Empty function.
+        """
+        pass
 
     def color_move_start(key):
+        """
+        Start moving the color center in the corresponding direction.
+        """
         if key == 119:
             nonlocal UP
             UP = True
@@ -213,6 +263,9 @@ def game():
             RIGHT = True
 
     def color_move_stop(key):
+        """
+        Stop moving the color center in the corresponding direction.
+        """
         if key == 119:
             nonlocal UP
             UP = False
@@ -246,7 +299,7 @@ def game():
             center.velocity += poke_mag * difference/distance
 
     #Game constants-----------------------------------------------------------
-    BACKGROUND_COLOR  = (63, 63, 63)
+    BACKGROUND_COLOR = (63, 63, 63)
     #WINDOW_WIDTH x WINDOW_HEIGHT should be at least 670 x 325 to see help
     #drawn properly.
     WINDOW_WIDTH = WINDOW_HEIGHT = 800
