@@ -140,18 +140,18 @@ def game():
         """
         Draws a help menu.
         """
-        help_background = pygame.Surface((670,325))
+        help_background = pygame.Surface((670,350))
         help_background.set_alpha(140)
         help_background.fill((0, 0, 0))
         help_coordinates = array([(WINDOW_WIDTH-670)//2,\
-                                  ((WINDOW_HEIGHT-325)//2)])
+                                  ((WINDOW_HEIGHT-350)//2)])
         WINDOW.blit(help_background, help_coordinates)
         for i, line in enumerate(help_text):
                 WINDOW.blit(line,\
                             help_coordinates+array([25, 16 + 25 * i]))
 
     #INPUT FUNCTIONS----------------------------------------------------------
-    def user_input():
+    def get_user_input():
         WASD = {97, 115, 100, 119}
         for event in pygame.event.get():
             if event.type == 12: #Quit
@@ -161,6 +161,8 @@ def game():
                 KEYDOWN_dict.get(event.key, no_key)()
                 if event.key in WASD:
                     color_move_start(event.key)
+                elif event.key == 32: #space
+                    poke(color_center.loc)
             elif event.type == 3: #Key up
                 if event.key in WASD:
                     color_move_stop(event.key)
@@ -247,11 +249,12 @@ def game():
     BACKGROUND_COLOR  = (63, 63, 63)
     #WINDOW_WIDTH x WINDOW_HEIGHT should be at least 670 x 325 to see help
     #drawn properly.
-    WINDOW_WIDTH = WINDOW_HEIGHT = 1000
+    WINDOW_WIDTH = WINDOW_HEIGHT = 800
     WINDOW = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
-    help_text = ["Left-click to poke the centers.",\
-                 "Right-click to create a new center.",\
-                 "w,a,s,d moves the color center.",\
+    help_text = ["left-click to poke the centers",\
+                 "right-click to create a new center",\
+                 "w,a,s,d moves the color center",\
+                 "space creates a poke at the color center's location",\
                  "----------------------------------",\
                  "Options:",\
                  "esc -- Toggles this menu",\
@@ -306,7 +309,7 @@ def game():
         if HELP: draw_help()
         clock.tick(40)  #Limit frames per second (Comment out if you'd like)
         pygame.display.update()
-        user_input()
+        get_user_input()
         move_centers()
     pygame.quit()
 
