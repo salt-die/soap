@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import pygame
 import pygame.freetype #For loading font
+from pygame.transform import scale, smoothscale
 from pygame.draw import polygon, aalines, circle
 from numpy import pi, array, where, sin, clip
 from numpy.linalg import norm
@@ -140,15 +141,18 @@ def game():
         """
         Draws a help menu.
         """
-        help_background = pygame.Surface((670,325))
+        SCALE = array((WINDOW_WIDTH/DEF_WINDOW_WIDTH,\
+                       WINDOW_HEIGHT/DEF_WINDOW_HEIGHT))
+        SCALE_BG = (SCALE * array((670, 325))).astype(int)
+        help_background = pygame.Surface(SCALE_BG)
         help_background.set_alpha(140)
         help_background.fill((0, 0, 0))
-        help_coordinates = array([(WINDOW_WIDTH-670)//2,\
-                                  ((WINDOW_HEIGHT-325)//2)])
+        help_coordinates = (array((WINDOW_WIDTH, WINDOW_HEIGHT)) - SCALE_BG)/2
         WINDOW.blit(help_background, help_coordinates)
-        for i, line in enumerate(help_text):
+        for i, line in enumerate(scaled_help_text):
                 WINDOW.blit(line,\
-                            help_coordinates+array([25, 16 + 25 * i]))
+                            (help_coordinates +\
+                            SCALE * array([25, 16 + 25 * i])).astype(int))
 
     #INPUT FUNCTIONS----------------------------------------------------------
     def user_input():
@@ -170,6 +174,22 @@ def game():
                 elif event.button == 3: #Right-Click
                     centers.add(Center(array(pygame.mouse.get_pos())\
                                        .astype(float), array([0.0, 0.0])))
+            elif event.type == 16: #Resize
+                nonlocal WINDOW_WIDTH
+                nonlocal WINDOW_HEIGHT
+                nonlocal WINDOW
+                nonlocal scaled_help_text
+                nonlocal OOB_DIM
+                WINDOW_WIDTH = event.w
+                WINDOW_HEIGHT = event.h
+                OOB_DIM = array([WINDOW_WIDTH, WINDOW_HEIGHT]).astype(float)
+                SCALE = array((WINDOW_WIDTH/DEF_WINDOW_WIDTH,\
+                               WINDOW_HEIGHT/DEF_WINDOW_HEIGHT))
+                scaled_help_text = [smoothscale(line,\
+                                          (SCALE * array((dim.w,\
+                                                          dim.h))).astype(int))\
+                                    for line, dim in help_text]
+                WINDOW = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT),16)
 
     def reset():
         nonlocal centers
@@ -246,9 +266,9 @@ def game():
     #Game constants-----------------------------------------------------------
     BACKGROUND_COLOR  = (63, 63, 63)
     #WINDOW_WIDTH x WINDOW_HEIGHT should be at least 670 x 325 to see help
-    #drawn properly.
-    WINDOW_WIDTH = WINDOW_HEIGHT = 1000
-    WINDOW = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
+    #menu drawn properly.
+    DEF_WINDOW_WIDTH = DEF_WINDOW_HEIGHT = 800
+    WINDOW = pygame.display.set_mode((DEF_WINDOW_WIDTH, DEF_WINDOW_HEIGHT),16)
     help_text = ["Left-click to poke the centers.",\
                  "Right-click to create a new center.",\
                  "w,a,s,d moves the color center.",\
@@ -263,7 +283,7 @@ def game():
                  "up  -- Cycle through color palettes"]
     myfont = pygame.freetype.Font('NotoSansMono-Regular.ttf', 20)
     help_text = [myfont.render(text, (255, 255, 255)) for text in help_text]
-    help_text = [i for i,_ in help_text] #Throw away the rect-like tuples
+    #help_text = [i for i,_ in help_text] #Throw away the rect-like tuples
     #If adding to palettes, remember input: output will be 3-tuples with each
     #element an integer between 0 and 255.
     palettes = [lambda color: color,\
@@ -282,22 +302,24 @@ def game():
                     273: next_palette,   #'up'
                     27: toggle_help,}    #'esc'
     clock = pygame.time.Clock() #For limiting fps
-    #Constants used for move_centers()
+    #Constants used for move_centers() and reset()
     MAX_VEL = 15.0 #Max Velocity
-    OOB_DIM = array([WINDOW_WIDTH, WINDOW_HEIGHT]).astype(float) #Out-of-bounds
-
+    color_center = Center(array([DEF_WINDOW_WIDTH/2, DEF_WINDOW_HEIGHT/2]),\
+                          array([0.0, 0.0]))
+    
     #Game Variables-----------------------------------------------------------
+    WINDOW_WIDTH = DEF_WINDOW_WIDTH
+    WINDOW_HEIGHT = DEF_WINDOW_HEIGHT
+    OOB_DIM = array([DEF_WINDOW_WIDTH, DEF_WINDOW_HEIGHT]).astype(float)
+    scaled_help_text = [line for line, _ in help_text]
     centers = {}; reset() #Create and randomly place cell centers
     #-----------------------------------------------------------------------
     #The color center is controlled with w,a,s,d. The distance from the color
     #center to the centers of voronoi cells determines those cells colors.
     #-----------------------------------------------------------------------
-    color_center = Center(array([WINDOW_WIDTH/2, WINDOW_HEIGHT/2]),\
-                          array([0.0, 0.0]))
     PALETTE = palettes[0]
     BOUNCING = FILL = OUTLINE = HELP = running = True
     CENTERS_VISIBLE = UP = DOWN = LEFT = RIGHT = False
-
     #Main Loop----------------------------------------------------------------
     while running:
         WINDOW.fill(BACKGROUND_COLOR)
