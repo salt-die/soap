@@ -38,7 +38,7 @@ def game():
         font = pygame.freetype.Font('NotoSansMono-Regular.ttf', 20)
         help_text = [font.render(text, (255, 255, 255)) for text in help_text]
         help_text = [i for i, _ in help_text] #Throw away the rect-like tuples
-        
+
     #Game Functions-----------------------------------------------------------
     def move_centers():
         """
@@ -309,11 +309,13 @@ def game():
             #update velocity according to magnitude and direction
             center.velocity += poke_mag * difference/distance
 
-    #Game constants-----------------------------------------------------------
+    #Game variables-----------------------------------------------------------
+
     #window dimensions should be at least 670 x 325 for help_menu to be drawn
     #properly.
     window_dim = array([800.0, 800.0])
     window = pygame.display.set_mode(window_dim.astype(int))
+
     help_text = ["left-click to poke the centers",\
                  "right-click to create a new center",\
                  "w,a,s,d moves the color center",\
@@ -327,6 +329,8 @@ def game():
                  "o   -- Toggle outline of Voronoi cells",\
                  "h   -- Toggle showing centers of Voronoi cells",\
                  "up  -- Cycle through color palettes"]
+    render_help()
+
     #If adding to palettes, remember input: output will be 3-tuples with each
     #element an integer between 0 and 255.
     palettes = [lambda color: color,\
@@ -336,7 +340,9 @@ def game():
                 lambda color: (color[0], color[0], color[0]),\
                 lambda color: (color[0], color[0], color[2]),\
                 lambda color: (155, 100, color[0])]
-    number_of_centers = 50 #Initial number of cell centers
+    palette = palettes[0]
+
+    #For get_user_input()
     keydown_dict = {114: reset,          #'r'
                     104: toggle_centers, #'h'
                     98: toggle_bouncing, #'b'
@@ -344,16 +350,12 @@ def game():
                     111: toggle_outline, #'o'
                     273: next_palette,   #'up'
                     27: toggle_help,}    #'esc'
+
     clock = pygame.time.Clock() #For limiting fps
-    max_vel = 15.0 #Max Velocity
-    centers = {}
-    reset() #Randomly place cell centers
-    #-----------------------------------------------------------------------
-    #The color center is controlled with w,a,s,d. The distance from the color
-    #center to the centers of voronoi cells determines those cells colors.
-    #-----------------------------------------------------------------------
-    color_center = Center(window_dim/2, array([0.0, 0.0]))
-    palette = palettes[0]
+
+    max_vel = 15.0 #Max Velocity of cell centers
+
+    #Convenient storage of all booleans
     booleans_dict = {"bouncing" : True,
                      "fill": True,
                      "outline" : True,
@@ -364,7 +366,16 @@ def game():
                      "down" : False,
                      "left" : False,
                      "right" : False}
-    render_help()
+
+    number_of_centers = 50 #Initial number of cell centers
+    centers = {}
+    reset() #Randomly place cell centers
+    #-----------------------------------------------------------------------
+    #The color center is controlled with w,a,s,d. The distance from the color
+    #center to the centers of voronoi cells determines those cells colors.
+    #-----------------------------------------------------------------------
+    color_center = Center(window_dim/2, array([0.0, 0.0]))
+
     #Main Loop----------------------------------------------------------------
     while booleans_dict["running"]:
         window.fill((63, 63, 63))
