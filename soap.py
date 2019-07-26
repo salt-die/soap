@@ -3,7 +3,6 @@
 import pygame
 import pygame.freetype #For loading font
 from pygame.draw import polygon, aalines, circle
-from pygame.locals import QUIT, KEYDOWN, KEYUP, MOUSEBUTTONDOWN
 from numpy import pi, array, where, sin, clip
 from numpy.linalg import norm
 from random import randint
@@ -91,8 +90,8 @@ def game():
             """
             frequency = .01
             distance = norm(color_center.loc - point)
-            color = (sin(frequency * distance +\
-                         array((0, 2*pi/3, 4*pi/3))) * 127 + 128).astype(int)
+            color = (127 * sin(frequency * distance +\
+                               array((0, 2*pi/3, 4*pi/3))) + 128).astype(int)
             return PALETTE(color)
 
         POINTS = [center.loc for center in centers]
@@ -155,17 +154,17 @@ def game():
     def user_input():
         WASD = {97, 115, 100, 119}
         for event in pygame.event.get():
-            if event.type == QUIT:
+            if event.type == 12: #Quit
                 nonlocal running
                 running = False
-            elif event.type == KEYDOWN:
+            elif event.type == 2: #Key down
                 KEYDOWN_dict.get(event.key, no_key)()
                 if event.key in WASD:
                     color_move_start(event.key)
-            elif event.type == KEYUP:
+            elif event.type == 3: #Key up
                 if event.key in WASD:
                     color_move_stop(event.key)
-            elif event.type == MOUSEBUTTONDOWN:
+            elif event.type == 5: #Mouse down
                 if event.button == 1:   #Left-Click
                     poke(array(pygame.mouse.get_pos()))
                 elif event.button == 3: #Right-Click
