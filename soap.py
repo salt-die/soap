@@ -125,18 +125,8 @@ def game():
             return palette(color)
 
         points = [center.loc for center in centers]
-        ###TODO: duplicate points to create cells with periodic boundary
-        ###boundary conditions. That is, for each point in points add some new
-        ###points: new_points_right = [point + array((window_dim[0], 0)]]
-        ###        new_points_left = [point - array((window_dim[0], 0))]
-        ###        new_points_above = [point - array((0,window_dim[1]))]
-        ###        new_points_below = [point + array((0, window_dim[1]))]
-        ###        new_points_top_left = [point - window_dim]
-        ###...etc.  A lot of overhead, but the end goal is to wrap polygons
-        ###around the screen as if one was on a torus.
-
-        #Comment out if you'd prefer no voronoi cell around the color center.
         points.append(color_center.loc)
+
         try:
             vor = Voronoi(points)
         except (QhullError, ValueError):
@@ -169,11 +159,17 @@ def game():
                 aalines(window, (255, 255, 255), True, poly, 1)
 
     def draw_voronoi_dual():
+        """
+        Draws the Delaunay triangulation of cell centers.
+        """
         points = [center.loc for center in centers]
         points.append(color_center.loc)
         try:
             dual = Delaunay(points)
         except (QhullError, ValueError):
+            #Either too few points or points are degenerate.
+            #Everything is fine, we just won't draw any simplices.
+            #Leave the function quietly!
             return
 
         simplices = [[dual.points[i] for i in simplex]\
@@ -236,13 +232,13 @@ def game():
         centers = {Center(random_sample(2) * (window_dim - max_vel),\
                           array([0.0, 0.0]), max_vel)\
                    for i in range(number_of_centers)}
-        
+
     def toggle_dual():
         """
         Toggle showing Voronoi dual.
         """
         booleans_dict["voronoi_dual"] = not booleans_dict["voronoi_dual"]
-        
+
     def toggle_centers():
         """
         Toggle showing cell centers.
