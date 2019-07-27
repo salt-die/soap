@@ -12,17 +12,36 @@ from numpy.random import random_sample
 from scipy.spatial.qhull import QhullError, Voronoi
 import pygame
 import pygame.freetype #For loading font
+from pygame.mouse import get_pos as mouse_xy
 from pygame.draw import polygon, aalines, circle
 
 class Center:
     """
-    A class for storing location and velocity.
-
-    Methods may be added in the future -- don't refactor into dict.
+    Cell center class.  Cell centers have methods that affect their movement.
     """
-    def __init__(self, loc, velocity):
+    def __init__(self, loc, velocity, max_vel):
         self.loc = loc
         self.velocity = velocity
+        self.max_vel = max_vel
+
+    def friction(self):
+        """
+        Applies friction and limits the magnitude of velocity.
+
+        The friction constant, fric, should satisfy 0 < fric < 1.
+        Don't fric it up.
+        """
+        fric = .97
+        self.velocity = fric * self.velocity
+        self.velocity[abs(self.velocity) < .01] = 0.0   #Prevent jitter.
+        clip(self.velocity, -self.max_vel,\
+             self.max_vel, self.velocity) #Prevent moving out of bounds.
+
+    def move(self):
+        """
+        Apply velocity to location.
+        """
+        self.loc += self.velocity
 
 def game():
     """
@@ -46,26 +65,6 @@ def game():
 
         Also handles manual movement of color center.
         """
-        def friction(velocity):
-            """
-            Applies friction and limits the magnitude of velocity.
-
-            The friction constant, fric, should satisfy 0 < fric < 1.
-            Don't fric it up.
-            """
-            fric = .97
-            velocity = fric * velocity
-            velocity[abs(velocity) < .01] = 0.0         #Prevent jitter
-            clip(velocity, -max_vel, max_vel, velocity) #Prevent OOB
-            return velocity
-
-        def decel_and_move(center):
-            """
-            Apply friction to center's velocity and move center according to
-            it's new velocity.
-            """
-            center.velocity = friction(center.velocity)
-            center.loc += center.velocity
 
         #Movement for cell centers
         if booleans_dict["bouncing"]:
@@ -73,20 +72,23 @@ def game():
                 #Reverse the velocity if out-of-bounds
                 center.velocity[(center.loc < max_vel)|\
                                 (center.loc > window_dim - max_vel)] *= -1
-                decel_and_move(center)
+                center.friction()
+                center.move()
         else: #Delete out-of-bound centers
             oob = {center for center in centers\
                    if ((center.loc < 0)|(window_dim < center.loc)).any()}
             centers.difference_update(oob)
             for center in centers:
-                decel_and_move(center)
+                center.friction()
+                center.move()
 
         #Movement for color center
         if not (booleans_dict["up"] or\
                 booleans_dict["down"] or\
                 booleans_dict["left"] or\
                 booleans_dict["right"]):
-            decel_and_move(color_center)
+            color_center.friction()
+            color_center.move()
         else:
             if booleans_dict["up"] and color_center.velocity[1] > -max_vel:
                 color_center.velocity[1] -= .5
@@ -96,7 +98,7 @@ def game():
                 color_center.velocity[0] -= .5
             if booleans_dict["right"] and color_center.velocity[0] < max_vel:
                 color_center.velocity[0] += .5
-            color_center.loc += color_center.velocity
+            color_center.move()
         #"Wrap" around the screen instead of heading out-of-bounds
         color_center.loc %= window_dim
 
@@ -128,11 +130,11 @@ def game():
         ###points: new_points_right = [point + array((window_dim[0], 0)]]
         ###        new_points_left = [point - array((window_dim[0], 0))]
         ###        new_points_above = [point - array((0,window_dim[1]))]
-        ###        new_points_below = [point + array((0, window_dim[1]))]  
+        ###        new_points_below = [point + array((0, window_dim[1]))]
         ###        new_points_top_left = [point - window_dim]
         ###...etc.  A lot of overhead, but the end goal is to wrap polygons
         ###around the screen as if one was on a torus.
-        
+
         #Comment out if you'd prefer no voronoi cell around the color center.
         points.append(color_center.loc)
         try:
@@ -208,10 +210,10 @@ def game():
                     color_move_stop(event.key)
             elif event.type == 5: #Mouse down
                 if event.button == 1:   #left-Click
-                    poke(array(pygame.mouse.get_pos()))
+                    poke(array(mouse_xy()))
                 elif event.button == 3: #right-Click
-                    centers.add(Center(array(pygame.mouse.get_pos())\
-                                       .astype(float), array([0.0, 0.0])))
+                    centers.add(Center(array(mouse_xy()).astype(float),\
+                                       array([0.0, 0.0]), max_vel))
 
     def reset():
         """
@@ -219,7 +221,7 @@ def game():
         """
         nonlocal centers
         centers = {Center(random_sample(2) * (window_dim - max_vel),\
-                          array([0.0, 0.0]))\
+                          array([0.0, 0.0]), max_vel)\
                    for i in range(number_of_centers)}
 
     def toggle_centers():
@@ -383,7 +385,7 @@ def game():
     #The color center is controlled with w,a,s,d. The distance from the color
     #center to the centers of voronoi cells determines those cells colors.
     #-----------------------------------------------------------------------
-    color_center = Center(window_dim/2, array([0.0, 0.0]))
+    color_center = Center(window_dim/2, array([0.0, 0.0]), max_vel)
 
     #Main Loop----------------------------------------------------------------
     while booleans_dict["running"]:
