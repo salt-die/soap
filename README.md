@@ -1,4 +1,5 @@
 ![soap preview](soap-preview.gif)
+![dual preview](dual-preview.gif)
 # soap
 Play with dynamic voronoi cells. Looks like soap.
 
