@@ -440,7 +440,6 @@ def game():
         pygame.display.update()
         get_user_input()
         move_centers()
-    pygame.quit()
 
 def main():
     """
@@ -449,6 +448,7 @@ def main():
     pygame.init()
     pygame.display.set_caption('Soap')
     game()
+    pygame.quit()
 
 if __name__ == "__main__":
     main()
