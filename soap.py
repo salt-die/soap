@@ -9,7 +9,7 @@ clicking.
 from numpy import pi, array, where, sin, clip
 from numpy.linalg import norm
 from numpy.random import random_sample
-from scipy.spatial.qhull import QhullError, Voronoi, Delaunay
+from scipy.spatial.qhull import QhullError, Voronoi, Delaunay, ConvexHull
 import pygame
 import pygame.freetype #For loading font
 from pygame.mouse import get_pos as mouse_xy
@@ -170,6 +170,18 @@ def game():
         """
         Draws the Delaunay triangulation of cell centers.
         """
+        def get_color(simplex):
+            """
+            A rainbow color function exactly as the one found in lolcat.
+            (see https://github.com/busyloop/lolcat)
+
+            Color depends on area of simplex.
+            """
+            frequency = .01
+            area = ConvexHull(simplex).area
+            color = (127 * sin(frequency * area +\
+                               array((0, 2*pi/3, 4*pi/3))) + 128).astype(int)
+            return palette(color)
         points = [center.loc for center in centers]
         points.append(color_center.loc)
         try:
@@ -183,8 +195,13 @@ def game():
         simplices = [[dual.points[i] for i in simplex]\
                      for simplex in dual.simplices]
 
-        for simplex in simplices:
-            aalines(window, (255, 255, 255), True, simplex, 1)
+        if booleans_dict["fill"]:
+            for simplex in simplices:
+                polygon(window, get_color(simplex), simplex)
+
+        if booleans_dict["outline"]:
+            for simplex in simplices:
+                aalines(window, (255, 255, 255), True, simplex, 1)
 
     def draw_centers():
         """
@@ -411,9 +428,10 @@ def game():
     while booleans_dict["running"]:
         window.fill((63, 63, 63))
         if booleans_dict["outline"] or booleans_dict["fill"]:
-            draw_voronoi_cells()
-        if booleans_dict["voronoi_dual"]:
-            draw_voronoi_dual()
+            if booleans_dict["voronoi_dual"]:
+                draw_voronoi_dual()
+            else:
+                draw_voronoi_cells()
         if booleans_dict["centers_visible"]:
             draw_centers()
         if booleans_dict["show_help"]:
