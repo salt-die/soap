@@ -9,7 +9,7 @@ clicking.
 from numpy import pi, array, where, sin, clip
 from numpy.linalg import norm
 from numpy.random import random_sample
-from scipy.spatial.qhull import QhullError, Voronoi
+from scipy.spatial.qhull import QhullError, Voronoi, Delaunay
 import pygame
 import pygame.freetype #For loading font
 from pygame.mouse import get_pos as mouse_xy
@@ -62,7 +62,7 @@ def game():
         """
         Handle behavior of cell center movement at the boundaries. Then
         apply friction and move each cell center.
-        
+
         Also handles the manual movement of color center.
         """
 
@@ -168,6 +168,20 @@ def game():
             for _, poly in polygons:
                 aalines(window, (255, 255, 255), True, poly, 1)
 
+    def draw_voronoi_dual():
+        points = [center.loc for center in centers]
+        points.append(color_center.loc)
+        try:
+            dual = Delaunay(points)
+        except (QhullError, ValueError):
+            return
+
+        simplices = [[dual.points[i] for i in simplex]\
+                     for simplex in dual.simplices]
+
+        for simplex in simplices:
+            aalines(window, (255, 255, 255), True, simplex, 1)
+
     def draw_centers():
         """
         Draws a tiny circle at each center location.
@@ -181,10 +195,10 @@ def game():
         """
         Draws a help menu.
         """
-        help_background = pygame.Surface((670, 350))
+        help_background = pygame.Surface((670, 375))
         help_background.set_alpha(140)
         help_background.fill((0, 0, 0))
-        help_coordinates = (window_dim - array([670.0, 350.0])) // 2
+        help_coordinates = (window_dim - array([670.0, 375.0])) // 2
         window.blit(help_background, help_coordinates)
         for i, line in enumerate(help_text):
             window.blit(line, help_coordinates+array([25, 16 + 25 * i]))
@@ -197,7 +211,6 @@ def game():
         wasd = {97, 115, 100, 119}
         for event in pygame.event.get():
             if event.type == 12: #Quit
-                nonlocal booleans_dict
                 booleans_dict["running"] = False
             elif event.type == 2: #key down
                 keydown_dict.get(event.key, no_key)()
@@ -223,12 +236,17 @@ def game():
         centers = {Center(random_sample(2) * (window_dim - max_vel),\
                           array([0.0, 0.0]), max_vel)\
                    for i in range(number_of_centers)}
-
+        
+    def toggle_dual():
+        """
+        Toggle showing Voronoi dual.
+        """
+        booleans_dict["voronoi_dual"] = not booleans_dict["voronoi_dual"]
+        
     def toggle_centers():
         """
         Toggle showing cell centers.
         """
-        nonlocal booleans_dict
         booleans_dict["centers_visible"] = not booleans_dict["centers_visible"]
 
     def toggle_bouncing():
@@ -236,21 +254,18 @@ def game():
         Toggle bouncing off boundaries. If off, out-of-bound centers are
         deleted.
         """
-        nonlocal booleans_dict
         booleans_dict["bouncing"] = not booleans_dict["bouncing"]
 
     def toggle_fill():
         """
         Toggle coloring the Voronoi cells.
         """
-        nonlocal booleans_dict
         booleans_dict["fill"] = not booleans_dict["fill"]
 
     def toggle_outline():
         """
         Toggle drawing the outling of the Voronoi cells.
         """
-        nonlocal booleans_dict
         booleans_dict["outline"] = not booleans_dict["outline"]
 
     def next_palette():
@@ -264,7 +279,6 @@ def game():
         """
         Show the help menu.
         """
-        nonlocal booleans_dict
         booleans_dict["show_help"] = not booleans_dict["show_help"]
 
     def no_key():
@@ -277,7 +291,6 @@ def game():
         """
         Start moving the color center in the corresponding direction.
         """
-        nonlocal booleans_dict
         if key == 119:
             booleans_dict["up"] = True
         elif key == 97:
@@ -291,7 +304,6 @@ def game():
         """
         Stop moving the color center in the corresponding direction.
         """
-        nonlocal booleans_dict
         if key == 119:
             booleans_dict["up"] = False
         elif key == 97:
@@ -335,6 +347,7 @@ def game():
                  "Options:",\
                  "esc -- Toggles this menu",\
                  "r   -- Reset centers",\
+                 "v   -- Toggle Voronoi dual",\
                  "b   -- Toggle bouncing (delete out-of-bound centers)",\
                  "f   -- Toggle fill of Voronoi cells",\
                  "o   -- Toggle outline of Voronoi cells",\
@@ -355,6 +368,7 @@ def game():
 
     #For get_user_input()
     keydown_dict = {114: reset,          #'r'
+                    118: toggle_dual,    #'v'
                     104: toggle_centers, #'h'
                     98: toggle_bouncing, #'b'
                     102: toggle_fill,    #'f'
@@ -367,7 +381,8 @@ def game():
     max_vel = 15.0 #Max Velocity of cell centers
 
     #Convenient storage of all booleans
-    booleans_dict = {"bouncing" : True,
+    booleans_dict = {"voronoi_dual" : False,
+                     "bouncing" : True,
                      "fill": True,
                      "outline" : True,
                      "show_help" : True,
@@ -392,6 +407,8 @@ def game():
         window.fill((63, 63, 63))
         if booleans_dict["outline"] or booleans_dict["fill"]:
             draw_voronoi_cells()
+        if booleans_dict["voronoi_dual"]:
+            draw_voronoi_dual()
         if booleans_dict["centers_visible"]:
             draw_centers()
         if booleans_dict["show_help"]:
