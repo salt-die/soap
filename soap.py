@@ -347,9 +347,8 @@ def game():
             """
             difference = center_loc - poke_loc
             distance = norm(difference)
-            if distance == 0: #Prevent divide by zero
-                distance = .001
-            return 100000 * difference/distance**3
+            #Leading constant can be modified -- if,else prevents divide by 0
+            return 100000 * difference/distance**3 if distance != 0 else 0
 
         for center in centers:
             center.delta_velocity(poke_power(loc, center.loc))
