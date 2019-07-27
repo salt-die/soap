@@ -60,10 +60,10 @@ def game():
     #Game Functions-----------------------------------------------------------
     def move_centers():
         """
-        Decelerate each cell center and then move each cell center according to
-        its new velocity.
-
-        Also handles manual movement of color center.
+        Handle behavior of cell center movement at the boundaries. Then
+        apply friction and move each cell center.
+        
+        Also handles the manual movement of color center.
         """
 
         #Movement for cell centers
