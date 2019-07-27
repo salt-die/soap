@@ -55,7 +55,6 @@ def game():
     The main game functions, constants, and variables, along with the main
     while loop.
     """
-
     def render_help():
         """
         Turns help_text into a surface that pygame can blit.
@@ -73,7 +72,6 @@ def game():
 
         Also handles the manual movement of color center.
         """
-
         #Movement for cell centers
         if booleans_dict["bouncing"]:
             for center in centers:
