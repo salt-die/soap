@@ -38,6 +38,10 @@ class Center:
              self.max_vel, self.velocity) #Prevent moving out of bounds.
 
     def delta_velocity(self, delta):
+        """
+        This adds delta to the velocity and then clips the result according to
+        max_vel.
+        """
         clip(self.velocity + delta, -self.max_vel, self.max_vel, self.velocity)
 
     def move(self):
@@ -51,7 +55,7 @@ def game():
     The main game functions, constants, and variables, along with the main
     while loop.
     """
-    
+
     def render_help():
         """
         Turns help_text into a surface that pygame can blit.
@@ -320,14 +324,19 @@ def game():
         Calculates how much a poke affects every center's velocity.
         Feel free to play with the constants below.
         """
-        for center in centers:
-            difference = center.loc - loc
+        def poke_power(poke_loc, center_loc):
+            """
+            Returns the force vector of a poke.
+            """
+            difference = center_loc - poke_loc
             distance = norm(difference)
             if distance == 0: #Prevent divide by zero
                 distance = .001
-            #Magnitude of poke
-            poke_mag = 100000 / distance**2
-            center.delta_velocity(poke_mag * difference/distance)
+            return 100000 * difference/distance**3
+
+        for center in centers:
+            center.delta_velocity(poke_power(loc, center.loc))
+        color_center.delta_velocity(poke_power(loc, color_center.loc))
 
     #Game variables-----------------------------------------------------------
 
