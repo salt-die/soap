@@ -229,8 +229,10 @@ def game():
         Reset position of the cell centers.
         """
         nonlocal centers
-        centers = {Center(random_sample(2) * (window_dim - max_vel),\
-                          array([0.0, 0.0]), max_vel)\
+        centers = {Center((random_sample(2) * (window_dim - 2 * max_vel))\
+                          + max_vel,\
+                          array([0.0, 0.0]),\
+                          max_vel)\
                    for i in range(number_of_centers)}
 
     def toggle_dual():
