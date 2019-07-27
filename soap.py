@@ -332,7 +332,7 @@ def game():
 
     #Game variables-----------------------------------------------------------
 
-    #window dimensions should be at least 670 x 325 for help_menu to be drawn
+    #window dimensions should be at least 670 x 375 for help_menu to be drawn
     #properly.
     window_dim = array([800.0, 800.0])
     window = pygame.display.set_mode(window_dim.astype(int))
