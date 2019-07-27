@@ -9,8 +9,7 @@ clicking.
 from numpy import pi, array, where, sin, clip
 from numpy.linalg import norm
 from numpy.random import random_sample
-from scipy.spatial import Voronoi
-from scipy.spatial.qhull import QhullError
+from scipy.spatial.qhull import QhullError, Voronoi
 import pygame
 import pygame.freetype #For loading font
 from pygame.draw import polygon, aalines, circle
@@ -124,6 +123,16 @@ def game():
             return palette(color)
 
         points = [center.loc for center in centers]
+        ###TODO: duplicate points to create cells with periodic boundary
+        ###boundary conditions. That is, for each point in points add some new
+        ###points: new_points_right = [point + array((window_dim[0], 0)]]
+        ###        new_points_left = [point - array((window_dim[0], 0))]
+        ###        new_points_above = [point - array((0,window_dim[1]))]
+        ###        new_points_below = [point + array((0, window_dim[1]))]  
+        ###        new_points_top_left = [point - window_dim]
+        ###...etc.  A lot of overhead, but the end goal is to wrap polygons
+        ###around the screen as if one was on a torus.
+        
         #Comment out if you'd prefer no voronoi cell around the color center.
         points.append(color_center.loc)
         try:
