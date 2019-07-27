@@ -37,6 +37,9 @@ class Center:
         clip(self.velocity, -self.max_vel,\
              self.max_vel, self.velocity) #Prevent moving out of bounds.
 
+    def delta_velocity(self, delta):
+        clip(self.velocity + delta, -self.max_vel, self.max_vel, self.velocity)
+
     def move(self):
         """
         Apply velocity to location.
@@ -48,9 +51,10 @@ def game():
     The main game functions, constants, and variables, along with the main
     while loop.
     """
+    
     def render_help():
         """
-        Renders help_text
+        Turns help_text into a surface that pygame can blit.
         """
         nonlocal help_text
         font = pygame.freetype.Font('NotoSansMono-Regular.ttf', 20)
@@ -90,14 +94,14 @@ def game():
             color_center.friction()
             color_center.move()
         else:
-            if booleans_dict["up"] and color_center.velocity[1] > -max_vel:
-                color_center.velocity[1] -= .5
-            if booleans_dict["down"] and color_center.velocity[1] < max_vel:
-                color_center.velocity[1] += .5
-            if booleans_dict["left"] and color_center.velocity[0] > -max_vel:
-                color_center.velocity[0] -= .5
-            if booleans_dict["right"] and color_center.velocity[0] < max_vel:
-                color_center.velocity[0] += .5
+            if booleans_dict["up"]:
+                color_center.delta_velocity(array((0, -.5)))
+            if booleans_dict["down"]:
+                color_center.delta_velocity(array((0, .5)))
+            if booleans_dict["left"]:
+                color_center.delta_velocity(array((-.5, 0)))
+            if booleans_dict["right"]:
+                color_center.delta_velocity(array((.5, 0)))
             color_center.move()
         #"Wrap" around the screen instead of heading out-of-bounds
         color_center.loc %= window_dim
@@ -317,23 +321,17 @@ def game():
         Feel free to play with the constants below.
         """
         for center in centers:
-            #Differences of coordinates of poke and center
             difference = center.loc - loc
-            #Distance between poke and center
             distance = norm(difference)
             if distance == 0: #Prevent divide by zero
                 distance = .001
             #Magnitude of poke
             poke_mag = 100000 / distance**2
-            if poke_mag > 200: #Limit magnitude of poke
-                poke_mag = 200
-            #update velocity according to magnitude and direction
-            center.velocity += poke_mag * difference/distance
+            center.delta_velocity(poke_mag * difference/distance)
 
     #Game variables-----------------------------------------------------------
 
-    #window dimensions should be at least 670 x 375 for help_menu to be drawn
-    #properly.
+    #Window dimensions should be at least 670 x 375 to not clip help_menu.
     window_dim = array([800.0, 800.0])
     window = pygame.display.set_mode(window_dim.astype(int))
 
