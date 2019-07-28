@@ -32,7 +32,7 @@ class Center:
         Don't fric it up.
         """
         fric = .97
-        self.velocity = fric * self.velocity
+        self.velocity *= fric
         self.velocity[abs(self.velocity) < .01] = 0.0   #Prevent jitter.
         clip(self.velocity, -self.max_vel,\
              self.max_vel, self.velocity) #Prevent moving out of bounds.
