@@ -34,15 +34,19 @@ class Center:
         fric = .97
         self.velocity *= fric
         self.velocity[abs(self.velocity) < .01] = 0.0   #Prevent jitter.
-        clip(self.velocity, -self.max_vel,\
-             self.max_vel, self.velocity) #Prevent moving out of bounds.
+        magnitude = norm(self.velocity)
+        if magnitude > self.max_vel:
+            self.velocity *= self.max_vel / magnitude
 
     def delta_velocity(self, delta):
         """
-        This adds delta to the velocity and then clips the result according to
+        This adds delta to the velocity and then limits the velocity to
         max_vel.
         """
-        clip(self.velocity + delta, -self.max_vel, self.max_vel, self.velocity)
+        self.velocity += delta
+        magnitude = norm(self.velocity)
+        if magnitude > self.max_vel:
+            self.velocity *= self.max_vel / magnitude
 
     def move(self):
         """
