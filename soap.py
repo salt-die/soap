@@ -6,7 +6,7 @@ soap: a useless experiment in pygame
 Poke dynamic voronoi cells by left-clicking or create new cells by right-
 clicking.
 """
-from numpy import pi, array, where, sin, clip
+from numpy import pi, array, where, sin
 from numpy.linalg import norm
 from numpy.random import random_sample
 from scipy.spatial.qhull import QhullError, Voronoi, Delaunay, ConvexHull
