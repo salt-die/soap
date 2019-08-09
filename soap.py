@@ -56,8 +56,7 @@ class Center:
 
 def game():
     """
-    The main game functions, constants, and variables, along with the main
-    while loop.
+    The main game functions, and variables, along with the main while loop.
     """
     def render_help():
         """
