@@ -79,12 +79,12 @@ def game():
         if booleans_dict["bouncing"]:
             for center in centers:
                 #Reverse the velocity if out-of-bounds
-                center.velocity[(center.loc < max_vel)|\
+                center.velocity[(center.loc < max_vel)|
                                 (center.loc > window_dim - max_vel)] *= -1
                 center.friction()
                 center.move()
         else: #Delete out-of-bound centers
-            oob = {center for center in centers\
+            oob = {center for center in centers
                    if ((center.loc < 0)|(window_dim < center.loc)).any()}
             centers.difference_update(oob)
             for center in centers:
@@ -92,10 +92,8 @@ def game():
                 center.move()
 
         #Movement for color center
-        if not (booleans_dict["up"] or\
-                booleans_dict["down"] or\
-                booleans_dict["left"] or\
-                booleans_dict["right"]):
+        if not any((booleans_dict["up"], booleans_dict["down"],
+                    booleans_dict["left"], booleans_dict["right"])):
             color_center.friction()
             color_center.move()
         else:
@@ -129,7 +127,7 @@ def game():
             """
             frequency = .01
             distance = norm(color_center.loc - point)
-            color = (127 * sin(frequency * distance +\
+            color = (127 * sin(frequency * distance +
                                array((0, 2*pi/3, 4*pi/3))) + 128).astype(int)
             return palette(color)
 
@@ -154,9 +152,9 @@ def game():
         #"point at infinity" -- these aren't drawable so we "forget" these
         #in our polygons list.
         #-----------------------------------------------------------------
-        polygons = [(vor.points[where(vor.point_region == i)],\
-                    [vor.vertices[j] for j in reg if j != -1])\
-                    for i, reg in enumerate(vor.regions)\
+        polygons = [(vor.points[where(vor.point_region == i)],
+                    [vor.vertices[j] for j in reg if j != -1])
+                    for i, reg in enumerate(vor.regions)
                     if len(reg) > 3 or (len(reg) == 3 and -1 not in reg)]
 
         if booleans_dict["fill"]:
@@ -180,7 +178,7 @@ def game():
             """
             frequency = .01
             area = ConvexHull(simplex).area
-            color = (127 * sin(frequency * area +\
+            color = (127 * sin(frequency * area +
                                array((0, 2*pi/3, 4*pi/3))) + 128).astype(int)
             return palette(color)
         points = [center.loc for center in centers]
@@ -193,7 +191,7 @@ def game():
             #Leave the function quietly!
             return
 
-        simplices = [[dual.points[i] for i in simplex]\
+        simplices = [[dual.points[i] for i in simplex]
                      for simplex in dual.simplices]
 
         if booleans_dict["fill"]:
@@ -255,10 +253,10 @@ def game():
         Reset position of the cell centers.
         """
         nonlocal centers
-        centers = {Center((random_sample(2) * (window_dim - 2 * max_vel))\
-                          + max_vel,\
-                          array([0.0, 0.0]),\
-                          max_vel)\
+        centers = {Center((random_sample(2) * (window_dim - 2 * max_vel))
+                          + max_vel,
+                          array([0.0, 0.0]),
+                          max_vel)
                    for i in range(number_of_centers)}
 
     def toggle_dual():
@@ -361,30 +359,30 @@ def game():
     window_dim = array([800.0, 800.0])
     window = pygame.display.set_mode(window_dim.astype(int))
 
-    help_text = ["left-click to poke the centers",\
-                 "right-click to create a new center",\
-                 "w,a,s,d moves the color center",\
-                 "space creates a poke at the color center's location",\
-                 "----------------------------------",\
-                 "Options:",\
-                 "esc -- Toggles this menu",\
-                 "r   -- Reset centers",\
-                 "v   -- Toggle Voronoi dual",\
-                 "b   -- Toggle bouncing (delete out-of-bound centers)",\
-                 "f   -- Toggle fill of Voronoi cells",\
-                 "o   -- Toggle outline of Voronoi cells",\
-                 "h   -- Toggle showing centers of Voronoi cells",\
+    help_text = ["left-click to poke the centers",
+                 "right-click to create a new center",
+                 "w,a,s,d moves the color center",
+                 "space creates a poke at the color center's location",
+                 "----------------------------------",
+                 "Options:",
+                 "esc -- Toggles this menu",
+                 "r   -- Reset centers",
+                 "v   -- Toggle Voronoi dual",
+                 "b   -- Toggle bouncing (delete out-of-bound centers)",
+                 "f   -- Toggle fill of Voronoi cells",
+                 "o   -- Toggle outline of Voronoi cells",
+                 "h   -- Toggle showing centers of Voronoi cells",
                  "up  -- Cycle through color palettes"]
     render_help()
 
     #If adding to palettes, remember input: output will be 3-tuples with each
     #element an integer between 0 and 255.
-    palettes = [lambda color: color,\
-                lambda color: (color[0], color[0], 255),\
-                lambda color: (color[0], color[1], 155),\
-                lambda color: (color[0], color[1], color[1]),\
-                lambda color: (color[0], color[0], color[0]),\
-                lambda color: (color[0], color[0], color[2]),\
+    palettes = [lambda color: color,
+                lambda color: (color[0], color[0], 255),
+                lambda color: (color[0], color[1], 155),
+                lambda color: (color[0], color[1], color[1]),
+                lambda color: (color[0], color[0], color[0]),
+                lambda color: (color[0], color[0], color[2]),
                 lambda color: (155, 100, color[0])]
     palette = palettes[0]
 
