@@ -25,7 +25,6 @@ def poke_power(poke_loc, center_loc):
     """
     difference = center_loc - poke_loc
     distance = np.linalg.norm(difference)
-    #Leading constant can be modified -- if,else prevents divide by 0
     return 100000 * difference/distance**3 if distance != 0 else 0
 
 class Center:
@@ -223,8 +222,6 @@ class Soap:
             dual = Delaunay(points)
         except (QhullError, ValueError):
             #Either too few points or points are degenerate.
-            #Everything is fine, we just won't draw any simplices.
-            #Leave the function quietly!
             return
 
         simplices = [[dual.points[i] for i in simplex]
