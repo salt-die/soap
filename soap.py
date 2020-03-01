@@ -199,7 +199,7 @@ class Soap:
         #in our polygons list.
         #-----------------------------------------------------------------
         polygons = [(vor.points[np.where(vor.point_region == i)],
-                    [vor.vertices[j] for j in reg if j != -1])
+                     [vor.vertices[j].astype(int) for j in reg if j != -1])
                     for i, reg in enumerate(vor.regions)
                     if len(reg) > 3 or (len(reg) == 3 and -1 not in reg)]
 
@@ -224,8 +224,7 @@ class Soap:
             #Either too few points or points are degenerate.
             return
 
-        simplices = [[dual.points[i] for i in simplex]
-                     for simplex in dual.simplices]
+        simplices = [[dual.points[i].astype(int) for i in simplex] for simplex in dual.simplices]
 
         if self.fill:
             for simplex in simplices:
@@ -251,7 +250,7 @@ class Soap:
         help_background = pygame.Surface((670, 375))
         help_background.set_alpha(140)
         help_background.fill((0, 0, 0))
-        help_coordinates = (DIM - np.array([670.0, 375.0])) // 2
+        help_coordinates = ((DIM - np.array([670.0, 375.0])) // 2).astype(int)
         self.WINDOW.blit(help_background, help_coordinates)
         for i, line in enumerate(self.HELP):
             self.WINDOW.blit(line, help_coordinates + (25, 16 + 25 * i))
