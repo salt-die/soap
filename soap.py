@@ -281,6 +281,8 @@ class Soap:
                 elif event.key == pygame.K_UP:
                     new_index = (self.PALETTES.index(self.palette) + 1) % len(self.PALETTES)
                     self.palette = self.PALETTES[new_index]
+                elif event.key == pygame.K_SPACE:
+                    self.poke(self.color_center.loc)
                 else:
                     self.keys[event.key] = True
             elif event.type == pygame.KEYUP:
